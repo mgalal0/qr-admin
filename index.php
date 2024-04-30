@@ -66,9 +66,12 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 
     <title>Avnology QR Tool</title>
     <style>
+<<<<<<< HEAD:index3.php
         .logo { 
             width: 250px;
         }
+=======
+>>>>>>> 4ef1191ebc97789e9496e6ad7dae99e70c9c2d86:index.php
         body {
             font-family: Arial, sans-serif;
             margin: 0;
@@ -173,6 +176,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
             font-size: 30px;
         }
 
+<<<<<<< HEAD:index3.php
              /* Navigation bar styles */
              nav {
             background-color: #333;
@@ -188,6 +192,8 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
             display: inline-block;
         }
 
+=======
+>>>>>>> 4ef1191ebc97789e9496e6ad7dae99e70c9c2d86:index.php
             </style>
 </head>
 
