@@ -16,8 +16,14 @@ function generateQRCode($data) {
     }
     $vcard .= "END:VCARD";
 
-    // Output QR code to browser
-    QRcode::png($vcard, 'qr-code.png', QR_ECLEVEL_Q, 10);
+    // Generate a unique filename for the QR code image
+    $filename = uniqid() . '.png';
+
+    // Output QR code to browser with the unique filename
+    QRcode::png($vcard, $filename, QR_ECLEVEL_Q, 10);
+
+    // Return the filename
+    return $filename;
 }
 
 // Check if form is submitted
@@ -32,8 +38,8 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         'social_media' => explode("\n", $_POST['social_media'])
     );
 
-    // Generate QR code
-    generateQRCode($data);
+    // Generate QR code and get the filename
+    $qrCodeFilename = generateQRCode($data);
 }
 ?>
 
@@ -42,10 +48,24 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+
+  <meta name="description" content="AVNology is a digital agency that specializes in software development, interactive design, and digital marketing. We help businesses achieve their goals with engaging digital experiences, visual elements, and social media presence.">
+  <meta name="keywords" content="digital agency, software development, interactive design, digital marketing, visual elements, social media presence , Qr Tool , qrcode , qr,code , tool , generate , making">
+  <meta name="author" content="AVNology">
+  <meta name="robots" content="index, follow">
+  <meta name="googlebot" content="index, follow">
+  <meta name="msnbot" content="index, follow">
+  <link rel="canonical" href="https://avnology.com/">
+  <link rel="shortcut icon" type="image/x-icon" href="your-favicon-url">
+
+
+</head>
+
+
+
     <title>Avnology QR Tool</title>
     <style>
-
-
         body {
             font-family: Arial, sans-serif;
             margin: 0;
@@ -150,17 +170,18 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
             text-decoration: none;
             font-size: 30px;
         }
-    </style>
+
+            </style>
 </head>
 <body>
     <header>
-        <img  class="logo   "src="avnology-logo.png" alt="Avnology Logo">
+        <img class="logo" src="avnology-logo.png" alt="Avnology Logo">
         <h1>Avnology QR Tool</h1>
     </header>
 
     <div class="container">
         <form id="qr-form" method="post">
-            <h2>Generate Contact Card QR Code</h2>
+         <h2>Generate Contact Card QR Code</h2>
             <label for="first_name">First Name:</label><br>
             <input type="text" id="first_name" name="first_name" required><br>
 
@@ -180,11 +201,13 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
             <textarea id="social_media" name="social_media" rows="4" required></textarea><br>
 
             <input type="submit" value="Generate Contact Card QR Code">
+        
+        
         </form>
 
         <div id="qr-code">
             <?php if ($_SERVER["REQUEST_METHOD"] == "POST") : ?>
-                <img src="qr-code.png" alt="QR Code">
+                <img src="<?php echo $qrCodeFilename; ?>" alt="QR Code">
             <?php endif; ?>
         </div>
     </div>
@@ -192,14 +215,12 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     <footer>
         <a href="https://avnology.com" target="_blank">Avnology</a>
     </footer>
-</body>
 
-<script>
+    <!-- JavaScript to redirect after 15 minutes -->
+    <script>
         setTimeout(function() {
             window.location.href = "https://avnology.com";
-        }, 900000); 
+        }, 900000); // 900000 milliseconds = 15 minutes
     </script>
-
-
-
+</body>
 </html>
