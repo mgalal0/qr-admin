@@ -44,6 +44,8 @@ if ($_FILES["pdf_file"]["error"] == UPLOAD_ERR_OK) {
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Upload PDF for QR Code Generation</title>
 </head>
+
+
 <body>
     <h2>Upload PDF for QR Code Generation</h2>
     <form action="pdf.php" method="post" enctype="multipart/form-data">
