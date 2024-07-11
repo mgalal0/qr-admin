@@ -1,8 +1,20 @@
 <?php
-// Allow CORS from any origin (or specify the frontend origin)
-header("Access-Control-Allow-Origin: *");
-header("Access-Control-Allow-Methods: POST, OPTIONS");
-header("Access-Control-Allow-Headers: Content-Type");
+// Allow CORS only from avnology.com
+$allowed_origin = "https://avnology.com";
+
+if (isset($_SERVER['HTTP_ORIGIN'])) {
+    if ($_SERVER['HTTP_ORIGIN'] === $allowed_origin) {
+        header("Access-Control-Allow-Origin: $allowed_origin");
+        header("Access-Control-Allow-Methods: POST, OPTIONS");
+        header("Access-Control-Allow-Headers: Content-Type");
+    } else {
+        http_response_code(403);
+        exit; // Exit if the origin is not allowed
+    }
+} else {
+    http_response_code(403);
+    exit; // Exit if the origin is not provided
+}
 
 if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
     exit; // Exit for preflight request
