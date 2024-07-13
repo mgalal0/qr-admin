@@ -1,0 +1,238 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Verification Code Management</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            line-height: 1.6;
+            margin: 0;
+            padding: 20px;
+            background-color: #f0f0f0;
+        }
+
+        .container {
+            max-width: 600px;
+            margin: auto;
+            background: #fff;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 0 10px rgba(0,0,0,0.1);
+        }
+
+        h1, h2 {
+            text-align: center;
+            color: #007bff; /* Changed to a modern blue color */
+        }
+
+        form {
+            margin-top: 20px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 8px;
+            color: #555;
+        }
+
+        input[type="text"], input[type="password"] {
+            width: calc(100% - 20px);
+            padding: 10px;
+            margin-bottom: 15px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            font-size: 16px;
+            transition: border-color 0.3s ease-in-out;
+        }
+
+        input[type="text"]:focus, input[type="password"]:focus {
+            border-color: #007bff; /* Changed focus border color to match the header color */
+            outline: none;
+        }
+
+        button {
+            display: block;
+            width: 100%;
+            padding: 10px;
+            background-color: #28a745; /* Changed button color to green */
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 16px;
+            transition: background-color 0.3s ease-in-out;
+        }
+
+        button:hover {
+            background-color: #218838; /* Darker green on hover */
+        }
+
+        #current-code {
+            margin-top: 20px;
+            text-align: center;
+            cursor: pointer; /* Cursor pointer to indicate clickability */
+            color: #6c757d; /* Dark gray color for the blurred text */
+            font-size: 18px;
+            border-bottom: 1px dashed #6c757d; /* Dashed underline effect */
+            padding: 10px; /* Added padding for better click area */
+            border-radius: 4px; /* Rounded corners */
+            filter: blur(5px); /* Apply blur effect */
+            transition: filter 0.3s ease-in-out; /* Smooth transition */
+        }
+
+        #current-code:hover {
+            filter: none; /* Remove blur on hover */
+            color: #333; /* Darken color on hover */
+        }
+
+        #current-code strong {
+            display: none; /* Initially hide the strong tag content */
+        }
+
+        .message-container {
+            position: fixed;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            padding: 10px;
+            border-radius: 4px;
+            text-align: center;
+            display: none;
+            z-index: 999;
+            width: 100%;
+            max-width: 400px;
+            animation: slideInUp 0.5s ease-out;
+        }
+
+        @keyframes slideInUp {
+            0% {
+                opacity: 0;
+                transform: translateY(100%);
+            }
+            100% {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .success-message {
+            background-color: #d4edda; /* Light green for success message */
+            color: #155724; /* Dark green text for success */
+            border: 1px solid #c3e6cb; /* Border color */
+        }
+
+        .error-message {
+            background-color: #f8d7da; /* Light red for error message */
+            color: #721c24; /* Dark red text for error */
+            border: 1px solid #f5c6cb; /* Border color */
+        }
+
+        .message {
+            margin: 0;
+            font-size: 16px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Verification Code Management</h1>
+
+        <div id="current-code" onclick="revealCode()">Current Code: <strong id="code-text"></strong></div>
+
+        <h2>Change Code</h2>
+        <form id="generate-code-form">
+            <label for="new-code">New Code:</label>
+            <input type="text" id="new-code" name="new-code" required>
+            <label for="secret-key">Admin Secret Key:</label>
+            <input type="password" id="secret-key" name="secret-key" required>
+            <button type="submit">Generate</button>
+        </form>
+
+        <h2>Download Spreadsheet</h2>
+        <a href="http://localhost/Ge/vcard_data.xlsx" target="_blank" class="btn">Download Spreadsheet</a>
+    </div>
+
+    <div id="message-container" class="message-container">
+        <p id="message" class="message"></p>
+    </div>
+
+    <script>
+        function getCurrentCode() {
+            fetch('http://localhost/Ge/get-current-code.php')
+                .then(response => response.json())
+                .then(data => {
+                    document.getElementById('code-text').textContent = data.code;
+                })
+                .catch(error => console.error('Error:', error));
+        }
+
+        function updateCode(updatedCode, secretKey) {
+            fetch('http://localhost/Ge/generate-new-code.php', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ code: updatedCode, secret_key: secretKey })
+            })
+            .then(response => {
+                if (response.ok) {
+                    return response.json();
+                } else {
+                    throw new Error('Failed to update code, check password');
+                }
+            })
+            .then(data => {
+                if (data.success) {
+                    console.log('Code Updated:', data.code);
+                    getCurrentCode(); // Refresh current code display
+                    displayMessage('Success: Verification code updated successfully.', 'success');
+                } else {
+                    throw new Error(data.message);
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                displayMessage(error.message, 'error');
+            });
+        }
+
+        document.getElementById('generate-code-form').addEventListener('submit', function(event) {
+            event.preventDefault();
+            const newCode = document.getElementById('new-code').value.trim();
+            const secretKey = document.getElementById('secret-key').value.trim();
+            updateCode(newCode, secretKey);
+        });
+
+        // Function to reveal current code
+        function revealCode() {
+            const codeElement = document.getElementById('code-text');
+            codeElement.style.display = 'inline'; // Show the code text
+            document.getElementById('current-code').removeAttribute('onclick'); // Remove onclick attribute
+        }
+
+        // Function to display messages
+        function displayMessage(message, type) {
+            const messageContainer = document.getElementById('message-container');
+            const messageElement = document.getElementById('message');
+            messageElement.textContent = message;
+
+            if (type === 'success') {
+                messageContainer.className = 'message-container success-message'; // Corrected class name
+            } else if (type === 'error') {
+                messageContainer.className = 'message-container error-message';
+            }
+
+            messageContainer.style.display = 'block'; // Show message container
+
+            setTimeout(function() {
+                messageContainer.style.display = 'none'; // Hide message after 3 seconds
+            }, 3000); // 3000 milliseconds = 3 seconds
+        }
+
+        // Initial load: Get and display current code
+        getCurrentCode();
+    </script>
+</body>
+</html>

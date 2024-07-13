@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>QR Code Generator</title>
+  </head>
+  <body>
+    <h1>Generate QR Code</h1>
+
+    <form id="vcard-form">
+      <h2>Generate vCard QR Code</h2>
+      <label>First Name: <input type="text" id="first_name" required /></label><br />
+      <label>Last Name: <input type="text" id="last_name" required /></label><br />
+      <label>Phone Number: <input type="text" id="phone_number" required /></label><br />
+      <label>Job Title: <input type="text" id="job_title" required /></label><br />
+      <label>Email: <input type="email" id="email" required /></label><br />
+      <label>Social Media Links (One per line):<br />
+        <textarea id="social_media" rows="4" required></textarea></label><br />
+      <button type="button" onclick="generateVCardQRCode()">Generate vCard QR Code</button>
+    </form>
+
+    <form id="link-form">
+      <h2>Generate Link QR Code</h2>
+      <label>Link: <input type="text" id="link" required /></label><br />
+      <button type="button" onclick="generateLinkQRCode()">Generate Link QR Code</button>
+    </form>
+
+    <form id="pdf-form" enctype="multipart/form-data">
+      <h2>Generate PDF QR Code</h2>
+      <label>Enter Code: <input type="text" id="code" required /></label><br />
+      <label>Select PDF: <input type="file" id="pdf" accept="application/pdf" required /></label><br />
+      <button type="button" onclick="generatePDFQRCode()">Generate PDF QR Code</button>
+    </form>
+
+    <div id="qr-code"></div>
+    <div id="message"></div>
+
+    <script>
+      function generateVCardQRCode() {
+        const data = {
+          type: "vcard",
+          data: {
+            first_name: document.getElementById("first_name").value,
+            last_name: document.getElementById("last_name").value,
+            phone_number: document.getElementById("phone_number").value,
+            job_title: document.getElementById("job_title").value,
+            email: document.getElementById("email").value,
+            social_media: document.getElementById("social_media").value,
+          },
+        };
+
+        fetch("http://localhost/Ge/generate-qrcode.php", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify(data),
+        })
+          .then((response) => response.json())
+          .then((result) => {
+            if (result.filename) {
+              document.getElementById("qr-code").innerHTML = `<img src="http://localhost/Ge/${result.filename}" alt="QR Code">`;
+            } else {
+              console.error("Error:", result.error);
+            }
+          })
+          .catch((error) => console.error("Error:", error));
+      }
+
+      function generateLinkQRCode() {
+        const data = {
+          type: "link",
+          data: document.getElementById("link").value,
+        };
+
+        fetch("http://localhost/Ge/generate-qrcode.php", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify(data),
+        })
+          .then((response) => response.json())
+          .then((result) => {
+            if (result.filename) {
+              document.getElementById("qr-code").innerHTML = `<img src="http://localhost/Ge/${result.filename}" alt="QR Code">`;
+            } else {
+              console.error("Error:", result.error);
+            }
+          })
+          .catch((error) => console.error("Error:", error));
+      }
+
+      function generatePDFQRCode() {
+        const pdfInput = document.getElementById("pdf");
+        const file = pdfInput.files[0];
+        const code = document.getElementById("code").value;
+        const maxFileSize = 20 * 1024 * 1024; // 20 MB
+
+        if (file.size > maxFileSize) {
+          document.getElementById("message").innerText = "File size exceeds 20MB.";
+          return;
+        }
+
+        const formData = new FormData();
+        formData.append("pdf", file);
+        formData.append("code", code);
+
+        fetch("http://localhost/Ge/generate-qrcode.php", {
+          method: "POST",
+          body: formData,
+        })
+          .then((response) => response.json())
+          .then((result) => {
+            if (result.filename) {
+              document.getElementById("qr-code").innerHTML = `<img src="http://localhost/Ge/${result.filename}" alt="QR Code">`;
+            } else {
+              document.getElementById("message").innerText = result.error;
+              console.error("Error:", result.error);
+            }
+          })
+          .catch((error) => {
+            document.getElementById("message").innerText = "An error occurred.";
+            console.error("Error:", error);
+          });
+      }
+    </script>
+  </body>
+</html>
