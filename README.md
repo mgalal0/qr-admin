@@ -171,4 +171,4 @@ For additional support or to obtain the admin secret key, please contact Avnolog
 
 ## License
 
-© 2024 Avnology. All rights reserved.
+© 2024 Mahmoud Galal. All rights reserved.
