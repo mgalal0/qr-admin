@@ -45,7 +45,7 @@ function saveVCardDataToExcel($data) {
     $sheet = $spreadsheet->getActiveSheet();
 
     // Check if the file exists to append data
-    $filePath = 'vcard_data.xlsx';
+    $filePath = 'card_data.xlsx';
     if (file_exists($filePath)) {
         $spreadsheet = \PhpOffice\PhpSpreadsheet\IOFactory::load($filePath);
         $sheet = $spreadsheet->getActiveSheet();
@@ -53,7 +53,7 @@ function saveVCardDataToExcel($data) {
     } else {
         // Add headers if the file does not exist
         $lastRow = 1;
-        $sheet->setCellValue('A1', 'First Name');
+        $sheet->setCellValue('A1', 'First Name');   
         $sheet->setCellValue('B1', 'Last Name');
         $sheet->setCellValue('C1', 'Phone Number');
         $sheet->setCellValue('D1', 'Job Title');
@@ -102,11 +102,10 @@ function handlePDFUpload($file, $code) {
         exit;
     }
 
-    // Verify code
-    $validCode = getVerificationCode(); // Retrieve valid code from function
-    if ($code !== $validCode) {
+    // Check if the submitted code is valid
+    if (!isValidCode($code)) {
         http_response_code(400);
-        echo json_encode(["error" => "Invalid code"]);
+        echo json_encode(["error" => "Invalid verification code"]);
         exit;
     }
 
@@ -128,15 +127,25 @@ function handlePDFUpload($file, $code) {
 function generateNewVerificationCode() {
     $newCode = substr(md5(uniqid(rand(), true)), 0, 8); // Generate a random 8-character code
     // Store $newCode securely or implement logic to manage it
-    file_put_contents('codes.json', json_encode(['code' => $newCode])); // Store new code
+    $codes = getCurrentCodes();
+    $codes[] = $newCode; // Append the new code
+    file_put_contents('codes.json', json_encode(['codes' => $codes])); // Store new codes
     return $newCode;
 }
 
-// Function to get the current verification code
-function getVerificationCode() {
-    $codes = json_decode(file_get_contents('codes.json'), true); // Retrieve codes from file
-    return $codes['code'] ?? ''; // Return current code or empty string if not found
+// Function to get the current verification codes
+function getCurrentCodes() {
+    $codesData = json_decode(file_get_contents('codes.json'), true); // Retrieve codes from file
+    $codes = array_column($codesData, 'code'); // Extract the 'code' field from each object
+    return $codes; // Return current codes or empty array if not found
 }
+
+// Function to check if the provided code is valid
+function isValidCode($code) {
+    $codes = getCurrentCodes(); // Get all valid codes
+    return in_array($code, $codes); // Check if the submitted code is valid
+}
+
 
 // Function to delete old QR code files
 function deleteOldQRCodeFiles($directory, $expiration = 10) {

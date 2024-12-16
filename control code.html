@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Verification Code Management</title>
     <style>
+        /* Existing styles */
         body {
             font-family: Arial, sans-serif;
             line-height: 1.6;
@@ -14,7 +15,7 @@
         }
 
         .container {
-            max-width: 600px;
+            max-width: 800px;
             margin: auto;
             background: #fff;
             padding: 20px;
@@ -24,7 +25,7 @@
 
         h1, h2 {
             text-align: center;
-            color: #007bff; /* Changed to a modern blue color */
+            color: #007bff;
         }
 
         form {
@@ -48,7 +49,7 @@
         }
 
         input[type="text"]:focus, input[type="password"]:focus {
-            border-color: #007bff; /* Changed focus border color to match the header color */
+            border-color: #007bff;
             outline: none;
         }
 
@@ -56,7 +57,7 @@
             display: block;
             width: 100%;
             padding: 10px;
-            background-color: #28a745; /* Changed button color to green */
+            background-color: #28a745;
             color: white;
             border: none;
             border-radius: 4px;
@@ -66,29 +67,49 @@
         }
 
         button:hover {
-            background-color: #218838; /* Darker green on hover */
+            background-color: #218838;
         }
 
-        #current-code {
+        #current-codes {
             margin-top: 20px;
             text-align: center;
-            cursor: pointer; /* Cursor pointer to indicate clickability */
-            color: #6c757d; /* Dark gray color for the blurred text */
-            font-size: 18px;
-            border-bottom: 1px dashed #6c757d; /* Dashed underline effect */
-            padding: 10px; /* Added padding for better click area */
-            border-radius: 4px; /* Rounded corners */
-            filter: blur(5px); /* Apply blur effect */
-            transition: filter 0.3s ease-in-out; /* Smooth transition */
         }
 
-        #current-code:hover {
-            filter: none; /* Remove blur on hover */
-            color: #333; /* Darken color on hover */
+        .code-item {
+            background-color: #e9ecef;
+            padding: 10px;
+            margin: 5px 0;
+            border-radius: 4px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            filter: blur(5px);
+            transition: filter 0.3s ease-in-out;
+            cursor: pointer;
         }
 
-        #current-code strong {
-            display: none; /* Initially hide the strong tag content */
+        .code-item:hover {
+            filter: none;
+            color: #333;
+        }
+
+        .code-item span {
+            flex-grow: 1;
+        }
+
+        .code-item button {
+            background-color: #dc3545;
+            margin-left: 10px;
+            padding: 5px 10px;
+            font-size: 14px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: background-color 0.3s ease-in-out;
+        }
+
+        .code-item button:hover {
+            background-color: #c82333;
         }
 
         .message-container {
@@ -118,121 +139,243 @@
         }
 
         .success-message {
-            background-color: #d4edda; /* Light green for success message */
-            color: #155724; /* Dark green text for success */
-            border: 1px solid #c3e6cb; /* Border color */
+            background-color: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
         }
 
         .error-message {
-            background-color: #f8d7da; /* Light red for error message */
-            color: #721c24; /* Dark red text for error */
-            border: 1px solid #f5c6cb; /* Border color */
+            background-color: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
         }
 
         .message {
             margin: 0;
             font-size: 16px;
         }
+
+        .overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.5);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+        }
+
+        .overlay-content {
+            background: #fff;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 0 10px rgba(0,0,0,0.1);
+            width: 90%;
+            max-width: 400px;
+        }
+
+        .overlay-content input[type="password"] {
+            width: calc(100% - 20px);
+            padding: 10px;
+            margin-bottom: 15px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            font-size: 16px;
+        }
+
+        .overlay-content button {
+            width: 100%;
+            padding: 10px;
+            background-color: #007bff;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 16px;
+            transition: background-color 0.3s ease-in-out;
+        }
+
+        .overlay-content button:hover {
+            background-color: #0056b3;
+        }
     </style>
 </head>
 <body>
-    <div class="container">
+    <!-- Password Overlay -->
+    <div class="overlay" id="password-overlay">
+        <div class="overlay-content">
+            <h2>Enter Admin Secret Key</h2>
+            <input type="password" id="admin-secret-key" placeholder="Secret Key">
+            <button onclick="checkPassword()">Submit</button>
+        </div>
+    </div>
+
+    <!-- Main Content -->
+    <div class="container" id="main-content" style="display: none;">
         <h1>Verification Code Management</h1>
 
-        <div id="current-code" onclick="revealCode()">Current Code: <strong id="code-text"></strong></div>
+        <!-- Current Codes Section -->
+        <div id="current-codes">
+            <h2>Current Codes</h2>
+            <div id="codes-list">
+                <!-- List of codes will be populated here -->
+            </div>
+        </div>
 
-        <h2>Change Code</h2>
+        <!-- Add New Code Form -->
+        <h2>Add New Code</h2>
         <form id="generate-code-form">
             <label for="new-code">New Code:</label>
             <input type="text" id="new-code" name="new-code" required>
-            <label for="secret-key">Admin Secret Key:</label>
-            <input type="password" id="secret-key" name="secret-key" required>
-            <button type="submit">Generate</button>
+            <button type="submit">Add Code</button>
         </form>
 
+        <!-- Download Spreadsheet -->
         <h2>Download Spreadsheet</h2>
         <a href="http://localhost/Ge/vcard_data.xlsx" target="_blank" class="btn">Download Spreadsheet</a>
     </div>
 
+    <!-- Message Container -->
     <div id="message-container" class="message-container">
         <p id="message" class="message"></p>
     </div>
 
     <script>
-        function getCurrentCode() {
-            fetch('http://localhost/Ge/get-current-code.php')
-                .then(response => response.json())
-                .then(data => {
-                    document.getElementById('code-text').textContent = data.code;
-                })
-                .catch(error => console.error('Error:', error));
+        const adminSecretKey = "m1"; // Replace with your actual secret key
+
+        // Function to check the admin secret key
+        function checkPassword() {
+            const inputKey = document.getElementById('admin-secret-key').value;
+            if (inputKey === adminSecretKey) {
+                document.getElementById('password-overlay').style.display = 'none';
+                document.getElementById('main-content').style.display = 'block';
+                fetchAllCodes();
+            } else {
+                alert('Invalid secret key');
+            }
         }
 
-        function updateCode(updatedCode, secretKey) {
-            fetch('http://localhost/Ge/generate-new-code.php', {
+        // Function to fetch all verification codes
+        function fetchAllCodes() {
+            fetch('get-current-code.php')
+                .then(response => response.json())
+                .then(data => {
+                    if (data.codes) {
+                        displayCodes(data.codes);
+                    } else {
+                        showMessage("Failed to retrieve codes.", "error-message");
+                    }
+                })
+                .catch(error => {
+                    console.error('Error fetching codes:', error);
+                    showMessage("Error fetching codes.", "error-message");
+                });
+        }
+
+        // Function to display codes in the DOM
+        function displayCodes(codes) {
+            const codesList = document.getElementById('codes-list');
+            codesList.innerHTML = '';
+
+            if (codes.length === 0) {
+                codesList.innerHTML = '<p>No verification codes available.</p>';
+                return;
+            }
+
+            codes.forEach((item, index) => {
+                const codeDiv = document.createElement('div');
+                codeDiv.className = 'code-item';
+                codeDiv.innerHTML = `
+                    <span>${sanitizeHTML(item.code)}</span>
+                    <small>${sanitizeHTML(item.created_at)}</small>
+                    <button onclick="deleteCode(${index})">Delete</button>
+                `;
+                codesList.appendChild(codeDiv);
+            });
+        }
+
+        // Function to sanitize input to prevent XSS
+        function sanitizeHTML(str) {
+            const temp = document.createElement('div');
+            temp.textContent = str;
+            return temp.innerHTML;
+        }
+
+        // Event listener for adding a new code
+        document.getElementById('generate-code-form').addEventListener('submit', function(event) {
+            event.preventDefault();
+            const newCode = document.getElementById('new-code').value.trim();
+
+            if (newCode === "") {
+                showMessage("Code cannot be empty", "error-message");
+                return;
+            }
+
+            const secretKey = document.getElementById('admin-secret-key').value;
+
+            fetch('generate-new-code.php', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json'
                 },
-                body: JSON.stringify({ code: updatedCode, secret_key: secretKey })
+                body: JSON.stringify({ code: newCode, secret_key: secretKey })
             })
-            .then(response => {
-                if (response.ok) {
-                    return response.json();
-                } else {
-                    throw new Error('Failed to update code, check password');
-                }
-            })
-            .then(data => {
-                if (data.success) {
-                    console.log('Code Updated:', data.code);
-                    getCurrentCode(); // Refresh current code display
-                    displayMessage('Success: Verification code updated successfully.', 'success');
-                } else {
-                    throw new Error(data.message);
-                }
-            })
-            .catch(error => {
-                console.error('Error:', error);
-                displayMessage(error.message, 'error');
-            });
-        }
-
-        document.getElementById('generate-code-form').addEventListener('submit', function(event) {
-            event.preventDefault();
-            const newCode = document.getElementById('new-code').value.trim();
-            const secretKey = document.getElementById('secret-key').value.trim();
-            updateCode(newCode, secretKey);
+                .then(response => response.json())
+                .then(data => {
+                    if (data.message) {
+                        showMessage(data.message, 'success-message');
+                        document.getElementById('generate-code-form').reset();
+                        fetchAllCodes();
+                    } else {
+                        showMessage(data.error, 'error-message');
+                    }
+                })
+                .catch(error => {
+                    console.error('Error generating code:', error);
+                    showMessage("Error generating code.", "error-message");
+                });
         });
 
-        // Function to reveal current code
-        function revealCode() {
-            const codeElement = document.getElementById('code-text');
-            codeElement.style.display = 'inline'; // Show the code text
-            document.getElementById('current-code').removeAttribute('onclick'); // Remove onclick attribute
+        // Function to delete a specific code
+        function deleteCode(index) {
+            const secretKey = document.getElementById('admin-secret-key').value;
+            if (!confirm('Are you sure you want to delete this code?')) return;
+
+            fetch('delete-code.php', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ index: index, secret_key: secretKey })
+            })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.message) {
+                        showMessage(data.message, 'success-message');
+                        fetchAllCodes();
+                    } else {
+                        showMessage(data.error, 'error-message');
+                    }
+                })
+                .catch(error => {
+                    console.error('Error deleting code:', error);
+                    showMessage("Error deleting code.", "error-message");
+                });
         }
 
-        // Function to display messages
-        function displayMessage(message, type) {
+        // Function to show messages
+        function showMessage(message, type) {
             const messageContainer = document.getElementById('message-container');
-            const messageElement = document.getElementById('message');
-            messageElement.textContent = message;
-
-            if (type === 'success') {
-                messageContainer.className = 'message-container success-message'; // Corrected class name
-            } else if (type === 'error') {
-                messageContainer.className = 'message-container error-message';
-            }
-
-            messageContainer.style.display = 'block'; // Show message container
-
-            setTimeout(function() {
-                messageContainer.style.display = 'none'; // Hide message after 3 seconds
-            }, 3000); // 3000 milliseconds = 3 seconds
+            messageContainer.className = `message-container ${type}`;
+            document.getElementById('message').textContent = message;
+            messageContainer.style.display = 'block';
+            setTimeout(() => {
+                messageContainer.style.display = 'none';
+            }, 3000);
         }
-
-        // Initial load: Get and display current code
-        getCurrentCode();
     </script>
 </body>
 </html>

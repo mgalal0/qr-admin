@@ -1,4 +1,8 @@
 <?php
+ini_set('display_errors', 1);
+ini_set('display_startup_errors', 1);
+error_reporting(E_ALL);
+
 // Allow CORS from any origin (or specify the frontend origin)
 header("Access-Control-Allow-Origin: *");
 header("Access-Control-Allow-Methods: GET, OPTIONS");
@@ -10,13 +14,19 @@ if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
     exit;
 }
 
-// Function to get the current verification code
-function getVerificationCode() {
-    $codes = json_decode(file_get_contents('codes.json'), true); // Retrieve codes from file
-    return $codes['code'] ?? ''; // Return current code or empty string if not found
+// Function to get all verification codes
+function getAllVerificationCodes() {
+    $file = 'codes.json';
+    if (file_exists($file)) {
+        $codes = json_decode(file_get_contents($file), true);
+        if (is_array($codes)) {
+            return $codes;
+        }
+    }
+    return [];
 }
 
-// Get and return the current verification code
-$currentCode = getVerificationCode();
-echo json_encode(["code" => $currentCode]);
+// Get and return all verification codes
+$allCodes = getAllVerificationCodes();
+echo json_encode(["codes" => $allCodes]);
 ?>

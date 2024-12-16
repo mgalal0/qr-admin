@@ -13,46 +13,34 @@ if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
     exit;
 }
 
-// Function to generate and return a new verification code
-function generateNewVerificationCode($newCode) {
+// Function to delete a verification code by index
+function deleteVerificationCode($index) {
     $file = 'codes.json';
-    
-    // Check if the file exists and is readable
     if (file_exists($file)) {
-        $currentData = json_decode(file_get_contents($file), true);
-        if (!is_array($currentData)) {
-            $currentData = [];
+        $codes = json_decode(file_get_contents($file), true);
+        if (is_array($codes) && isset($codes[$index])) {
+            array_splice($codes, $index, 1);
+            file_put_contents($file, json_encode($codes, JSON_PRETTY_PRINT));
+            return true;
         }
-    } else {
-        $currentData = [];
     }
-
-    // Append the new code with a timestamp
-    $currentData[] = [
-        'code' => $newCode,
-        'created_at' => date('Y-m-d H:i:s')
-    ];
-
-    // Store the updated codes array
-    file_put_contents($file, json_encode($currentData, JSON_PRETTY_PRINT));
-    return $newCode;
+    return false;
 }
 
 // Read JSON input
 $input = json_decode(file_get_contents('php://input'), true);
 
-if ($input && isset($input['code']) && isset($input['secret_key'])) {
-    $newCode = trim($input['code']);
+if ($input && isset($input['index']) && isset($input['secret_key'])) {
+    $index = intval($input['index']);
     $secretKey = $input['secret_key'];
 
     // Check if the secret key matches
     if ($secretKey === $adminSecretKey) {
-        if (!empty($newCode)) {
-            generateNewVerificationCode($newCode);
-            echo json_encode(["message" => "Verification code added successfully", "code" => $newCode]);
+        if (deleteVerificationCode($index)) {
+            echo json_encode(["message" => "Verification code deleted successfully"]);
         } else {
             http_response_code(400);
-            echo json_encode(["error" => "Code cannot be empty"]);
+            echo json_encode(["error" => "Invalid index or code not found"]);
         }
     } else {
         http_response_code(403); // Forbidden
