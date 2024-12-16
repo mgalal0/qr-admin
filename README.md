@@ -162,7 +162,6 @@ print('Response:', response.json())
 ## Security
 
 - Admin secret key required for verification code updates
-- Contact Avnology for admin secret key access
 - Keep the admin secret key confidential and accessible only to authorized personnel
 
 ## Support
